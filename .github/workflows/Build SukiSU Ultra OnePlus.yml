@@ -693,6 +693,9 @@ jobs:
           git clone https://github.com/HanKuCha/sched_ext.git
           cp -r ./sched_ext/* ./common/kernel/sched
           rm -rf ./sched_ext/.git
+          if [ "${{ env.KERNEL_VERSION }}" = "6.1" ]; then
+            patch -p1 -d common < "$GITHUB_WORKSPACE/patches/sched_ext_6.1_compat.patch"
+          fi
           cd common/kernel/sched
 
       # Custom kernel build time, without adding #1 SMP PREEMPT 自定义内核构建时间，不要加入#1 SMP PREEMPT

@@ -1,0 +1,49 @@
+diff --git a/kernel/sched/ext.c b/kernel/sched/ext.c
+--- a/kernel/sched/ext.c
++++ b/kernel/sched/ext.c
+@@ -2042,9 +2042,11 @@ static int select_task_rq_scx(struct task_struct *p, int prev_cpu, int wake_flag
+ 	}
+ }
+ 
+-static void set_cpus_allowed_scx(struct task_struct *p, struct affinity_context *ctx)
++static void set_cpus_allowed_scx(struct task_struct *p,
++				 const struct cpumask *new_mask,
++				u32 flags)
+ {
+-	set_cpus_allowed_common(p, ctx);
++	set_cpus_allowed_common(p, new_mask, flags);
+ 
+ 	/*
+ 	 * The effective cpumask is stored in @p->cpus_ptr which may temporarily
+@@ -3095,8 +3097,10 @@ static bool bpf_scx_is_valid_access(int off, int size,
+ }
+ 
+ static int bpf_scx_btf_struct_access(struct bpf_verifier_log *log,
+-				 const struct bpf_reg_state *reg,
+-				 int off, int size)
++				 const struct btf *btf,
++				 const struct btf_type *t, int off, int size,
++				 enum bpf_access_type atype,
++				 u32 *next_btf_id, enum bpf_type_flag *flag)
+ {
+ 	return 0;
+ }
+@@ -3159,8 +3163,7 @@ static int bpf_scx_init_member(const struct btf_type *t,
+ }
+ 
+ static int bpf_scx_check_member(const struct btf_type *t,
+-				const struct btf_member *member,
+-				const struct bpf_prog *prog)
++				const struct btf_member *member)
+ {
+ 	u32 moff = __btf_member_bit_offset(t, member) / 8;
+ 
+@@ -3216,7 +3219,7 @@ struct bpf_struct_ops bpf_sched_ext_ops = {
+ 	.name = "sched_ext_ops",
+ };
+ 
+-static void sysrq_handle_sched_ext_reset(u8 key)
++static void sysrq_handle_sched_ext_reset(int key)
+ {
+ 	if (scx_ops_helper)
+ 		scx_ops_disable(SCX_EXIT_SYSRQ);
